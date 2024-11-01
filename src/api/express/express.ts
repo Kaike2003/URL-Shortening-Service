@@ -5,15 +5,26 @@ import cors from "cors";
 import { rateLimit } from "express-rate-limit";
 import dotenv from "dotenv";
 const expressListEndpoints = require("express-list-endpoints");
+import helmet from "helmet";
+var compression = require("compression");
 
 export default class ApiExpress implements IApi, IApiOptions {
   private constructor(private app: Express) {}
 
   public static build() {
     const app = express();
-    app.use(express.json());
-    app.use(express.urlencoded());
-    app.use(cors());
+    app.use(express.json({ limit: "1mb" }));
+    app.use(express.urlencoded({ limit: "1mb", extended: true }));
+    app.use(compression());
+    app.use(helmet());
+    app.use(
+      cors({
+        origin: "*",
+        methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
+        preflightContinue: false,
+        optionsSuccessStatus: 204,
+      })
+    );
     app.use(
       rateLimit({
         windowMs: 15 * 60 * 1000,
